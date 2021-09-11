@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+    <h2>수정하기</h2>
+
+    <form id="regform">
+        문서명 : <input type="text" id="doc_name"> <br>
+        가격 : <input type="text" id="pdt_price"> <br>
+        상품명 : <input type="text" id="pdt_name"> <br>
+        이미지 : <input type="file" id="pdt_image"> <br>
+        <input type="button" id="submitBtn" value="상품수정">
+    </form>
+</div>    
+</body>
+<script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-storage.js"></script>
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyCc7tn-ruwkbahXleJpgMI0pWWLTZBQcgg",
+    authDomain: "noserver01-6d697.firebaseapp.com",
+    projectId: "noserver01-6d697",
+    storageBucket: "noserver01-6d697.appspot.com",
+    messagingSenderId: "39784331052",
+    appId: "1:39784331052:web:be05ae74d100fe00e05e89"
+  };
+  firebase.initializeApp(firebaseConfig);
+</script>
+<script>
+function getParameter(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+const db = firebase.firestore();
+const storage = firebase.storage();
+var id = getParameter("id");
+
+db.collection("product").doc(id).get()
+.then((doc) => {
+    if (doc.exists) {
+        console.log("Document data:", doc.data());
+        $('#doc_name').val(id);
+        $('#pdt_price').val(doc.data().가격);
+        $('#pdt_name').val(doc.data().상품명);
+    } 
+    else {
+        alert('해당 문서를 읽을수 없습니다.');
+        history.back();
+    }
+})
+.catch((error) => {
+    console.log("Error getting document:", error);
+    alert('해당 문서를 읽을수 없습니다.');
+    history.back();
+});
+$('#submitBtn').click(function(){    
+    let doc_name = $('#doc_name').val();
+    let pdt_price = $('#pdt_price').val();
+    let pdt_name = $('#pdt_name').val();
+    console.log(doc_name, pdt_price, pdt_name);
+
+    //이미지 업로드
+    //var file = document.querySelector('#pdt_image').files[0];
+    var file = document.getElementById('pdt_image').files[0];
+    var storageRef = storage.ref();
+    var path = storageRef.child('images/' + file.name);
+    var uploadResult = path.put(file);
+
+    uploadResult.on('state_changed', 
+        //변화시 동작
+        null, 
+        //실패시 동작
+        (error)=>{
+            console.error('업로드실패', error);
+        },
+        //성공시 동작
+        ()=>{
+            uploadResult.snapshot.ref.getDownloadURL().then((url) => {
+                console.log('업로드경로', url);
+                
+                //수정성공
+                db.collection('product').doc(doc_name).set({
+                    '가격':Number(pdt_price), '상품명':pdt_name, '이미지':url
+                })
+                .then((result)=>{
+                    //console.log(result);
+                    alert('상품이 수정되었습니다.');
+                    location.href="list.html";
+                })
+                .catch((err)=>{
+                    alert('상품수정실패');
+                    console.error(err);
+                });
+            });
+        }
+    );
+});
+</script>    
+</html>
+
+

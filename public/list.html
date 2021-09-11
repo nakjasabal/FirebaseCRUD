@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+    <h2>목록보기</h2>
+    <div class="product">
+        
+    </div>
+    <div class="row">
+        <button type="button" class="btn btn-primary" onclick="location.href='write.html';">입력하기</button>
+    </div>
+</div>    
+</body>
+<script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-storage.js"></script>
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyCc7tn-ruwkbahXleJpgMI0pWWLTZBQcgg",
+    authDomain: "noserver01-6d697.firebaseapp.com",
+    projectId: "noserver01-6d697",
+    storageBucket: "noserver01-6d697.appspot.com",
+    messagingSenderId: "39784331052",
+    appId: "1:39784331052:web:be05ae74d100fe00e05e89"
+  };
+  firebase.initializeApp(firebaseConfig);
+</script>
+<script>
+    const db = firebase.firestore();
+
+    db.collection('product').get().then((result)=>{        
+        result.forEach((doc)=>{
+            console.log(doc.id, doc.data());
+            var obj = doc.data();
+            var p_html = `<table class="table table-striped table-border">
+                <colgroup>
+                    <col width="20%">
+                    <col width="*">
+                    <col width="30%">
+                </colgroup>
+                <tr>
+                    <td><img src="${obj.이미지}" width="100"></td>
+                    <td class="align-middle">
+                        상품명 : ${obj.상품명} <br/>
+                        가격 : ${obj.가격}
+                    </td>
+                    <td>
+                    <button class="btn btn-success" onclick="docEdit('${doc.id}')">수정</button>
+                    <button class="btn btn-danger" onclick="docDelete('${doc.id}')">삭제</button>
+                    </td>
+                </tr>
+            </table>`;
+            $('.product').append(p_html)
+        });
+    });
+    function docEdit(id){
+        location.href='edit.html?id='+id;
+    }
+    function docDelete(id){
+        if(confirm('삭제할까요?')){
+            db.collection("product").doc(id).delete()
+            .then((res)=>{
+                console.log('성공', res);
+                alert('삭제성공');
+                location.reload();
+            })
+            .catch((err)=>{
+                console.log('실패', err);
+            });
+        }
+    }
+</script>
+</html>
+
+<!-- 
+    //삭제
+    db.collection("product").doc("YgbjY6qDN6jjFQUoMyWm").delete()
+    .then((res)=>{console.log('성공', res);})
+    .catch((err)=>{console.log('실패', err);});
+
+
+    //수정성공
+    // db.collection('product').doc('YgbjY6qDN6jjFQUoMyWm').set({
+    //     '가격':13300, '상품명':'컴터333'
+    // })
+    // .then((res)=>{console.log('성공', res);})
+    // .catch((err)=>{console.log('실패', err);});
+
+    //입력성공
+    // db.collection('product').add({
+    //     '가격':2000, '상품명':'컴터2'
+    // })
+    // .then((res)=>{console.log('성공', res);})
+    // .catch((err)=>{console.log('실패', err);});
+-->
